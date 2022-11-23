@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_smorest import Api
 from flask_migrate import Migrate
@@ -8,6 +9,11 @@ from resources.user import blp as UserBlueprint
 
 
 def create_app():
+    env = os.environ.get("ENV", "Development")
+    if env == "Production":
+        config_str = "config.ProductionConfig"
+    else:
+        config_str = "config.DevelopmentConfig"
     app = Flask(__name__)
     app.config.from_object(Config)
     app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
@@ -33,4 +39,4 @@ def register_resources(app):
 
 if __name__ == "__main__":
     app = create_app()
-    app.run()
+    app.run(host="0.0.0.0", debug=True)
