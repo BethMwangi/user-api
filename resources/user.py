@@ -3,12 +3,13 @@ from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy import func
 
-from extensions import db
+from extensions import db, cache
 from utils import CursorPage
 from models.user import UserModel
 from schemas.user import UserSchema, UserUpdateSchema, UserQueryArgsSchema
 
 blp = Blueprint("users", __name__, description="Operations on users")
+
 
 @blp.route("/user/<int:id>")
 class User(MethodView):
@@ -44,26 +45,33 @@ class User(MethodView):
 
 @blp.route("/users")
 class UserList(MethodView):
+    @cache.cached(timeout=60, query_string=True)
     @blp.arguments(UserQueryArgsSchema, location="query")
     @blp.response(200, UserSchema(many=True))
-    @blp.paginate(CursorPage) 
+    @blp.paginate(CursorPage)
     def get(self, args):
         if not args:
             users = UserModel.query.order_by(UserModel.id)
             return users
 
-        username = args.pop('username', None)
-        users = UserModel.query.filter(UserModel.username == username)
+        username = args.pop("username", None)
+        users = UserModel.query.filter(
+            func.lower(UserModel.username) == func.lower(username)
+        )
         if username is not None:
             return users
 
-        first_name = args.pop('first_name', None)
-        users = UserModel.query.filter(func.lower(UserModel.first_name) == func.lower(first_name))
+        first_name = args.pop("first_name", None)
+        users = UserModel.query.filter(
+            func.lower(UserModel.first_name) == func.lower(first_name)
+        )
         if first_name is not None:
             return users
 
-        last_name = args.pop('last_name', None)
-        users = UserModel.query.filter(func.lower(UserModel.last_name) == func.lower(last_name))
+        last_name = args.pop("last_name", None)
+        users = UserModel.query.filter(
+            func.lower(UserModel.last_name) == func.lower(last_name)
+        )
         if last_name is not None:
             return users
 
@@ -76,8 +84,7 @@ class UserList(MethodView):
             db.session.add(user)
             db.session.commit()
         except IntegrityError:
-            abort(400, message="A user with that name already Exists")
+            abort(400, message="A user with that username already Exists")
         except SQLAlchemyError:
             abort(500, "An error occurred")
         return user
-
