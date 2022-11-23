@@ -14,3 +14,9 @@ class UserUpdateSchema(Schema):
     email = fields.Str()
     first_name = fields.Str()
     last_name = fields.Str()
+
+class UserQueryArgsSchema(Schema):
+    username = fields.Str()
+    email = fields.Str()
+    first_name = fields.Str()
+    last_name = fields.Str()
