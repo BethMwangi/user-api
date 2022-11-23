@@ -1,0 +1,26 @@
+SELECT * FROM public.users
+ORDER BY id ASC 
+
+-- CREATE TABLE USER 
+-- (id SERIAL PRIMARY KEY,
+--  username VARCHAR(80),
+--  first_name VARCHAR(80), 
+--  last_name VARCHAR(80), 
+--  email VARCHAR(80));
+ 
+CREATE FUNCTION get_random_str() RETURNS TEXT LANGUAGE SQL AS $$ 
+SELECT STRING_AGG ( SUBSTR ( 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', CEIL (RANDOM() * 52)::integer, 1), '') 
+FROM GENERATE_SERIES(1, 10) 
+$$;
+
+CREATE FUNCTION insert_user_record() RETURNS VOID LANGUAGE PLPGSQL AS $$
+DECLARE first_name TEXT= INITCAP(get_random_str());
+DECLARE last_name TEXT= INITCAP(get_random_str());
+DECLARE username TEXT= INITCAP(get_random_str());
+DECLARE email TEXT= LOWER(CONCAT(first_name, '.', last_name, '@gmail.com'));
+BEGIN
+INSERT INTO public.users (first_name, last_name, username, email) VALUES (first_name, last_name, username, email);
+END;
+$$;
+
+SELECT insert_user_record() FROM GENERATE_SERIES(1, 1000000);
