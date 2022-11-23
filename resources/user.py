@@ -6,7 +6,7 @@ from extensions import db
 from models.user import UserModel
 from schemas.user import UserSchema
 
-blp = Blueprint("Users", "users", description="Operations on users")
+blp = Blueprint("users", __name__, description="Operations on users")
 
 @blp.route("/user/<int:id>")
 class User(MethodView):
@@ -22,7 +22,7 @@ class User(MethodView):
         return {"message": "User deleted"}, 200
 
 
-@blp.route("/users")
+@blp.route("/user")
 class UserList(MethodView):
     @blp.response(200, UserSchema(many=True))
     def get(self):
